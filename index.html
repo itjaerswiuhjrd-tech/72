@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر ماينكرافت الخاص بك | التحكم بالأسعار</title>
+
+    <!-- Bootstrap 5 RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --mc-green: #2e7d32;
+            --mc-green-hover: #1b5e20;
+            --mc-dark: #121212;
+            --mc-card: #1e1e24;
+            --mc-gold: #ffb300;
+        }
+
+        body {
+            background-color: var(--mc-dark);
+            color: #ffffff;
+            font-family: 'Cairo', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .navbar-custom {
+            background-color: rgba(18, 18, 18, 0.95);
+            border-bottom: 3px solid var(--mc-green);
+        }
+
+        .btn-mc {
+            background-color: var(--mc-green);
+            color: white;
+            border: 2px solid #000;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-mc:hover {
+            background-color: var(--mc-green-hover);
+            color: white;
+        }
+
+        .product-card {
+            background-color: var(--mc-card);
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+
+        .product-card:hover {
+            border-color: var(--mc-green);
+        }
+
+        .product-img {
+            height: 180px;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .price-badge {
+            color: var(--mc-gold);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .admin-panel {
+            background-color: #25252d;
+            border: 2px dashed var(--mc-gold);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- القائمة العلوية -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                <i class="fa-solid fa-cube text-success fs-3"></i>
+                <span class="fw-bold">متجر ماينكرافت التفاعلي</span>
+            </a>
+            <button class="btn btn-warning fw-bold btn-sm" id="toggleAdminBtn">
+                <i class="fa-solid fa-gear me-1"></i> لوحة التحكم بالأسعار
+            </button>
+        </div>
+    </nav>
+
+    <!-- لوحة التحكم بالأسعار (تظهر وتختفي عند الضغط) -->
+    <div class="container mt-4 d-none" id="adminSection">
+        <div class="admin-panel">
+            <h4 class="text-warning mb-3"><i class="fa-solid fa-sliders me-2"></i>تعديل الأسعار والمنتجات</h4>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">اسم المنتَج</label>
+                    <input type="text" id="newTitle" class="form-control bg-dark text-white border-secondary"
+                        placeholder="مثال: قصر الكوارتز">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">السعر (بالدولار $)</label>
+                    <input type="number" id="newPrice" class="form-control bg-dark text-white border-secondary"
+                        placeholder="10">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">رابط الصورة (اختياري)</label>
+                    <input type="text" id="newImg" class="form-control bg-dark text-white border-secondary"
+                        placeholder="رابط صورة المنتج">
+                </div>
+                <div class="col-12 text-end">
+                    <button class="btn btn-warning fw-bold" onclick="addNewProduct()">
+                        <i class="fa-solid fa-plus me-1"></i> إضافة للمتجر
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- واجهة المتجر -->
+    <section class="py-5 text-center">
+        <div class="container">
+            <h1 class="fw-extrabold mb-3">اختر بيتك المفضل في ماينكرافت</h1>
+            <p class="text-secondary">جميع العروض والتصاميم متاحة للتحميل المباشر بعد الشراء.</p>
+
+            <div class="row g-4 mt-3" id="productsGrid">
+                <!-- يتم التوليد التلقائي هنا -->
+            </div>
+        </div>
+    </section>
+
+    <!-- نافذة إتمام الشراء -->
+    <div class="modal fade" id="buyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-success">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="buyModalTitle">إتمام الشراء</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="fs-5">المبلغ المطلوب للدفع:</p>
+                    <h2 class="text-warning fw-bold mb-4" id="buyModalPrice">$0</h2>
+                    <p class="text-secondary small">اضغط على تأكيد للدفع والانتقال لصفحة التحميل.</p>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-mc" onclick="confirmPurchase()">تأكيد الشراء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // قائمة المنتجات الافتراضية مع إمكانية تعديل أسعارها
+        let products = [
+            { id: 1, title: 'بيت البداية السريع', price: 5, img: 'https://placehold.co/400x300/8B5A2B/FFF?text=Starter+Hut' },
+            { id: 2, title: 'قصر الكوارتز المودرن', price: 15, img: 'https://placehold.co/400x300/EEEEEE/333?text=Modern+Mansion' },
+            { id: 3, title: 'القلعة الحجرية الضخمة', price: 25, img: 'https://placehold.co/400x300/555555/FFF?text=Medieval+Castle' }
+        ];
+
+        let selectedProduct = null;
+
+        // عرض المنتجات
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+
+            products.forEach(p => {
+                grid.innerHTML += `
+                    <div class="col-md-4">
+                        <div class="product-card h-100 d-flex flex-column justify-content-between p-3">
+                            <div>
+                                <img src="${p.img}" class="product-img rounded mb-3" alt="${p.title}">
+                                <h5 class="fw-bold mb-2">${p.title}</h5>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+                                    <span class="text-secondary">السعر:</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="number" class="form-control form-control-sm bg-dark text-warning border-secondary text-center" 
+                                               style="width: 80px;" value="${p.price}" onchange="updatePrice(${p.id}, this.value)">
+                                        <span class="price-badge">$</span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-mc w-100" onclick="openBuyModal(${p.id})">
+                                    <i class="fa-solid fa-cart-shopping me-1"></i> شراء الآن
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // تحديث سعر المنتج فوراً
+        function updatePrice(id, newPrice) {
+            const product = products.find(p => p.id === id);
+            if (product) {
+                product.price = parseFloat(newPrice) || 0;
+            }
+        }
+
+        // إضافة منتج جديد بسعر محدد
+        function addNewProduct() {
+            const title = document.getElementById('newTitle').value;
+            const price = parseFloat(document.getElementById('newPrice').value);
+            const img = document.getElementById('newImg').value || 'https://placehold.co/400x300/2e7d32/FFF?text=Minecraft+Build';
+
+            if (!title || isNaN(price)) {
+                alert('يرجى كتابة اسم المنتج والسعر بشكل صحيح!');
+                return;
+            }
+
+            products.push({
+                id: Date.now(),
+                title: title,
+                price: price,
+                img: img
+            });
+
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newPrice').value = '';
+            document.getElementById('newImg').value = '';
+
+            renderProducts();
+        }
+
+        // فتح نافذة الشراء للمشتري
+        function openBuyModal(id) {
+            selectedProduct = products.find(p => p.id === id);
+            document.getElementById('buyModalTitle').innerText = selectedProduct.title;
+            document.getElementById('buyModalPrice').innerText = '$' + selectedProduct.price;
+            new bootstrap.Modal(document.getElementById('buyModal')).show();
+        }
+
+        function confirmPurchase() {
+            alert(`تم طلب "${selectedProduct.title}" بسعر $${selectedProduct.price} بنجاح!`);
+            bootstrap.Modal.getInstance(document.getElementById('buyModal')).hide();
+        }
+
+        // إظهار/إخفاء لوحة التحكم
+        document.getElementById('toggleAdminBtn').addEventListener('click', () => {
+            document.getElementById('adminSection').classList.toggle('d-none');
+        });
+
+        // التشغيل عند الفتح
+        renderProducts();
+    </script>
+</body>
+
+</html>
